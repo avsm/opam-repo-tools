@@ -1,0 +1,17 @@
+OASISFormat: 0.3
+License: ISC
+Authors: Anil Madhavapeddy
+Name: repotools
+Version: 0.1
+Synopsis: Tools to get metadata from repositories on Github
+BuildTools: ocamlbuild
+
+Library "repotools"
+  Modules: Changelog, Github_repo
+  BuildDepends: uri (>= 1.3.2), cohttp.lwt, core, threads, lwt.syntax
+  path: repotools
+
+Executable "opam-changelog"
+  MainIs: opam_changelog.ml
+  path: bin
+  BuildDepends: repotools, lwt.syntax, lwt.unix, cmdliner
