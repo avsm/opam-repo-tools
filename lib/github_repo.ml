@@ -24,11 +24,15 @@ let http_get uri =
     |None -> failwith ("unable to get changes for " ^ (Uri.to_string uri))
     |Some (r, b) ->
        (* TODO check the r code is a 200 *)
-       Cohttp_lwt_unix.Body.string_of_body b
+       Cohttp_lwt_body.string_of_body b
 
 (** Fetch a CHANGES file from the [branch] of a [user]/[repo] in Github *)
 let changelog ?(branch="master") ~user ~repo () =
   (* Assume a CHANGES file is present in master *)
   let uri = Uri.of_string (sprintf "https://raw.github.com/%s/%s/%s/CHANGES" user repo branch) in
-  let clog = Lwt_unix.run (http_get uri) in
-  Changelog.parse clog
+  try
+    let clog = Lwt_unix.run (http_get uri) in
+    Some (Package_changelog.parse clog)
+  with exn ->
+    eprintf "Unable to parse %s: %s\n%!" (Uri.to_string uri) (Printexc.to_string exn);
+    None

@@ -14,9 +14,12 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *)
 
+(** Retrieves a repository at https://github.com/<user>/<repo> and parses
+    the [CHANGES] file.  It returns an association list of version and
+    changes, and None if it was unable to parse the result *)
 val changelog :
   ?branch:string ->
   user:string ->
   repo:string ->
-  unit -> 
-  (string * string) list
+  unit ->
+  (string * string) list option

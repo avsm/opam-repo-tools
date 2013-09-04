@@ -2,12 +2,15 @@ open Cmdliner
 
 let changelog branch user repo =
   let clog = Github_repo.changelog ~branch ~user ~repo () in
-  List.iter (fun (date, changes) ->
-    print_endline date;
-    print_endline changes;
-    print_endline "";
-  ) clog;
-  `Ok ()
+  match clog with
+  | None -> prerr_endline "Unable to retrieve a valid CHANGES file"; exit (-1)
+  | Some clog ->
+      let pchanges = Changelog.parse_markdown clog in
+      List.iter (fun (date, changes) ->
+      print_endline date;
+      print_endline (Omd.to_html changes);
+      print_endline "") pchanges;
+      `Ok  ()
 
 let branch =
   let doc = "Remote branch to retrieve CHANGES from" in
@@ -30,6 +33,6 @@ let cmd : (unit Term.t * Term.info) =
     `P "$(b,opam)(1)" ]
   in
   Term.(ret (pure changelog $ branch $ user $ repo)),
-  Term.(info "cp" ~version:"1.6.1" ~doc ~man)
+  Term.(info "opam-changelog" ~version:"1.6.1" ~doc ~man)
 
 let () = match Term.eval cmd with `Error _ -> exit 1 | _ -> exit 0

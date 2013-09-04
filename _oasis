@@ -7,9 +7,9 @@ Synopsis: Tools to get metadata from repositories on Github
 BuildTools: ocamlbuild
 
 Library "repotools"
-  Modules: Changelog, Github_repo
-  BuildDepends: uri (>= 1.3.2), cohttp.lwt, core, threads, lwt.syntax
-  path: repotools
+  Modules: Package_changelog, Github_repo
+  BuildDepends: uri (>= 1.3.2), cohttp.lwt, core, threads, lwt.syntax, omd
+  path: lib
 
 Executable "opam-changelog"
   MainIs: opam_changelog.ml

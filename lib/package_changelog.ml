@@ -17,12 +17,12 @@
 open Core.Std
 
 (* Parse our homebrew Github CHANGES format for repositories, which is:
-0.9.0 (trunk)
-* improve (but break) the command-line interface by using cmdliner
+   0.9.0 (trunk)
+ * improve (but break) the command-line interface by using cmdliner
 
-0.8.2 [Dec 2012]
-* Fix an issue with 'opam reinstall <packages>' where packages were reinstalled in reverse order
-* etc...
+   0.8.2 [Dec 2012]
+ * Fix an issue with 'opam reinstall <packages>' where packages were reinstalled in reverse order
+ * etc...
 *)
 let parse buf =
   let lines = String.split ~on:'\n' buf in
@@ -30,16 +30,30 @@ let parse buf =
     function
     |[] | ""::_ -> List.rev res (* EOF *)
     |hd::tl -> begin
-      prerr_endline hd;
-      let (version,_) = String.lsplit2_exn ~on:' ' hd in
-      aux_changes version res [] tl
-    end
+        prerr_endline hd;
+        let (version,_) = String.lsplit2_exn ~on:' ' hd in
+        aux_changes version res [] tl
+      end
   (* Consume until new line or EOF *)
   and aux_changes version res acc =
-   let combine l = (version, (String.concat ~sep:"\n" (List.rev l))) :: res in
-   function
-   |[] -> List.rev (combine acc)
-   |""::tl -> aux_header (combine acc) tl
-   |hd::tl -> aux_changes version res (hd::acc) tl
+    let combine l = (version, (String.concat ~sep:"\n" (List.rev l))) :: res in
+    function
+    |[] -> List.rev (combine acc)
+    |""::tl -> aux_header (combine acc) tl
+    |hd::tl -> aux_changes version res (hd::acc) tl
   in
   aux_header [] lines
+
+let parse_markdown l =
+  List.map l ~f:(fun (ver,changes) ->
+      let md =
+        try
+          (* Trailing space needed due to pw374/omd#20 *)
+          Omd.lex (changes ^ "\n" ) |> Omd.parse
+        with exn ->
+          eprintf "Warning, unable to parse due to: %s\nContents:\n%s\n%!"
+            (Exn.to_string exn) changes;
+          exit 1
+      in
+      (ver,md)
+    )
