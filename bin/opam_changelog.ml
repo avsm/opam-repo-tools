@@ -1,16 +1,12 @@
 open Cmdliner
 
 let changelog branch user repo =
-  let clog = Github_repo.changelog ~branch ~user ~repo () in
-  match clog with
-  | None -> prerr_endline "Unable to retrieve a valid CHANGES file"; exit (-1)
-  | Some clog ->
-      let pchanges = Changelog.parse_markdown clog in
-      List.iter (fun (date, changes) ->
+  let clog = Lwt_main.run (Github_repo.changelog ~branch ~user ~repo ()) in
+  List.iter (fun (date, changes) ->
       print_endline date;
       print_endline (Omd.to_html changes);
-      print_endline "") pchanges;
-      `Ok  ()
+      print_endline "") clog;
+  `Ok  ()
 
 let branch =
   let doc = "Remote branch to retrieve CHANGES from" in

@@ -1,5 +1,5 @@
 (*
- * Copyright (c) 2013 Anil Madhavapeddy <anil@recoil.org>
+ * Copyright (c) 2012-2013 Anil Madhavapeddy <anil@recoil.org>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,12 +14,12 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *)
 
-(** Retrieves a repository at https://github.com/<user>/<repo> and parses
-    the [CHANGES] file.  It returns an association list of version and
-    changes, and None if it was unable to parse the result *)
-val changelog :
-  ?branch:string ->
-  user:string ->
-  repo:string ->
-  unit ->
-  (string * Omd.t) list Lwt.t
+(* Given a [CHANGES] file, parse it into an association list of
+   version and raw contents.  The contents are usually a Markdown list,
+   which can be parsed using the {! Omd} library or the [parse_markdown]
+   function below. *)
+val parse : string -> (string * string) list
+
+(* Convert an association list of changes created using [parse] and
+   lex/parse the changelist into a structured Markdown type. *)
+val parse_markdown : (string * string) list -> (string * Omd.t) list

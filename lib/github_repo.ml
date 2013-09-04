@@ -16,23 +16,21 @@
 
 (* Interface to Github-hosted repositories *)
 open Printf
+open Lwt
 
 (** Fetch a HTTP [uri] via GET *)
 let http_get uri =
   (* TODO yuck! simpler api needed in cohttp *)
   match_lwt Cohttp_lwt_unix.Client.get uri with
-    |None -> failwith ("unable to get changes for " ^ (Uri.to_string uri))
-    |Some (r, b) ->
-       (* TODO check the r code is a 200 *)
-       Cohttp_lwt_body.string_of_body b
+  | None -> failwith ("unable to get changes for " ^ (Uri.to_string uri))
+  | Some (r, b) ->
+      (* TODO check the r code is a 200 *)
+      Cohttp_lwt_body.string_of_body b
 
 (** Fetch a CHANGES file from the [branch] of a [user]/[repo] in Github *)
 let changelog ?(branch="master") ~user ~repo () =
   (* Assume a CHANGES file is present in master *)
   let uri = Uri.of_string (sprintf "https://raw.github.com/%s/%s/%s/CHANGES" user repo branch) in
-  try
-    let clog = Lwt_unix.run (http_get uri) in
-    Some (Package_changelog.parse clog)
-  with exn ->
-    eprintf "Unable to parse %s: %s\n%!" (Uri.to_string uri) (Printexc.to_string exn);
-    None
+  http_get uri
+  >|= Package_changelog.parse
+  >|= Package_changelog.parse_markdown
